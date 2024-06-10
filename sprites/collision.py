@@ -1,0 +1,69 @@
+from pygame.sprite import Sprite
+
+from .properties import ImmovableProperty
+
+
+def find_overlap(sprite1: Sprite, sprite2: Sprite):
+    """
+    Finds the overlap between two sprites along the x and y axes.
+    Returns a tuple (overlap_x, overlap_y) where overlap_x and overlap_y are the overlap distances.
+    """
+    # Get the bounding rectangles of the sprites
+    rect1 = sprite1.rect
+    rect2 = sprite2.rect
+
+    # Calculate the overlap along the x-axis
+    if rect1.right < rect2.left or rect1.left > rect2.right:
+        overlap_x = 0
+    else:
+        overlap_x = min(rect1.right, rect2.right) - max(rect1.left, rect2.left)
+
+    # Calculate the overlap along the y-axis
+    if rect1.bottom < rect2.top or rect1.top > rect2.bottom:
+        overlap_y = 0
+    else:
+        overlap_y = min(rect1.bottom, rect2.bottom) - max(rect1.top, rect2.top)
+
+    return overlap_x, overlap_y
+
+def resolve_overlap(sprite1: Sprite, sprite2: Sprite):
+    """
+    Resolves the overlap between two sprites by moving the movable sprite(s)
+    along the axis with the least overlap. If both sprites are movable, it
+    moves them simultaneously by half the overlapped distance.
+    """
+    sprite1_movable = ImmovableProperty not in [type(group) for group in sprite1.groups()]
+    sprite2_movable = ImmovableProperty not in [type(group) for group in sprite2.groups()]
+
+    if not sprite1_movable and not sprite2_movable:
+        return
+
+    overlap_x, overlap_y = find_overlap(sprite1, sprite2)
+
+    if overlap_x == 0 and overlap_y == 0:
+        return
+
+    if overlap_x < overlap_y:
+        # Resolve along the x-axis
+        if sprite1_movable and sprite2_movable:
+            # Move both sprites by half the overlap distance
+            sprite1.rect.x -= overlap_x // 2
+            sprite2.rect.x += overlap_x // 2
+        elif sprite1_movable:
+            # Move sprite1 by the full overlap distance
+            sprite1.rect.x -= overlap_x
+        else:
+            # Move sprite2 by the full overlap distance
+            sprite2.rect.x += overlap_x
+    else:
+        # Resolve along the y-axis
+        if sprite1_movable and sprite2_movable:
+            # Move both sprites by half the overlap distance
+            sprite1.rect.y -= overlap_y // 2
+            sprite2.rect.y += overlap_y // 2
+        elif sprite1_movable:
+            # Move sprite1 by the full overlap distance
+            sprite1.rect.y -= overlap_y
+        else:
+            # Move sprite2 by the full overlap distance
+            sprite2.rect.y += overlap_y
