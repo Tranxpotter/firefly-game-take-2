@@ -2,6 +2,8 @@ from typing import Iterable, Any
 import pygame
 from pygame.sprite import AbstractGroup, Sprite
 
+from .velocity import Velocity
+
 class BasePropertyGroup(pygame.sprite.Group):
     def update(self, *args: Any, **kwargs: Any) -> None:
         return
@@ -15,5 +17,5 @@ class ImmovableProperty(BasePropertyGroup):
 class MovableProperty(BasePropertyGroup):
     def add_internal(self, sprite: Any | Sprite, layer: None = None) -> None:
         super().add_internal(sprite, layer)
-        sprite.velocity = 
+        sprite.__setattr__("velocity", Velocity())
         
