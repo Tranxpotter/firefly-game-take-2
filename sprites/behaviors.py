@@ -1,4 +1,4 @@
-from typing import Iterable, Any
+from typing import Iterable, Any, Type, Sequence
 import pygame
 from pygame.sprite import AbstractGroup, Sprite
 
@@ -28,8 +28,20 @@ class BaseBehaviorGroup(pygame.sprite.Group):
 
 
 class SolidBehavior(BaseBehaviorGroup):
+    """
+    Implements a `SolidBehavior` group that handles collisions between sprites in the group. When two sprites in the group collide, the `handle_collision` method is called to resolve the overlap and reset the velocity of the colliding sprites along the axis of collision.
+    
+    The `update` method of the `SolidBehavior` group uses `pygame.sprite.groupcollide` to detect collisions between all sprites in the group, and then calls the `handle_collision` method for each pair of colliding sprites.
+    """
     @staticmethod
     def handle_collision(sprite1:Sprite, sprite2:Sprite):
+        """
+        Resolves the overlap between two sprites in the `SolidBehavior` group and resets the velocity of the colliding sprites along the axis of collision.
+        
+        Args:
+            sprite1 (pygame.sprite.Sprite): The first sprite involved in the collision.
+            sprite2 (pygame.sprite.Sprite): The second sprite involved in the collision.
+        """
         if sprite1 == sprite2:
             return
         
@@ -50,6 +62,15 @@ class SolidBehavior(BaseBehaviorGroup):
 
 
 class GravityBehavior(BaseBehaviorGroup):
+    """
+    Implements a `GravityBehavior` group that applies a constant acceleration force to all sprites in the group, simulating the effect of gravity.
+    
+    The `update` method of the `GravityBehavior` group iterates through all sprites in the group and updates their `velocity.y` attribute by adding the acceleration value multiplied by the time delta. If a sprite does not have a `velocity` attribute, a warning message is printed.
+    
+    Args:
+        accel (float): The acceleration value to apply to sprites in the group. Defaults to -9.81 (Earth's gravity).
+        *sprites (Any | AbstractGroup | Iterable): The sprites or sprite groups to add to the GravityBehavior group.
+    """
     def __init__(self, accel:float = -9.81, *sprites: Any | AbstractGroup | Iterable) -> None:
         """
         Initializes a GravityBehavior group with the specified acceleration value.
@@ -75,5 +96,18 @@ class GravityBehavior(BaseBehaviorGroup):
 
 
 
+all_groups:list[Type[BaseBehaviorGroup]] = [SolidBehavior, GravityBehavior]
 
-
+class BehaviorManager:
+    def __init__(self) -> None:
+        self.behaviors = {group:group() for group in all_groups}
+    
+    def add_sprite(self, sprite, behaviors:Iterable[Type[BaseBehaviorGroup]]) -> None:
+        for behavior in behaviors:
+            assert behavior in self.behaviors, f"behavior {behavior} not found in BehaviorManager"
+            self.behaviors[behavior].add_internal(sprite)
+    
+    
+    def get_behavior(self, behavior:Type[BaseBehaviorGroup]) -> BaseBehaviorGroup:
+        assert behavior in self.behaviors, f"behavior {behavior} not found in BehaviorManager"
+        return self.behaviors[behavior]

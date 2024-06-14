@@ -1,6 +1,11 @@
 import math
 
 class Velocity:
+    """
+    Represents a 2D velocity vector with properties for magnitude, degrees, and radians.
+    
+    The `Velocity` class provides a convenient way to work with 2D velocity vectors. It has properties for getting and setting the magnitude, degrees, and radians of the vector. The class also provides a string representation for the velocity vector.
+    """
     def __init__(self, velo_x:float = 0, velo_y:float = 0) -> None:
         self.x = velo_x
         self.y = velo_y
